@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read --allow-net --allow-env"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"]
+  },
+  "importMap": "import_map.json"
+}
