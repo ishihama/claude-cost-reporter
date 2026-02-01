@@ -33,14 +33,22 @@ function getMonthDateRange(): { startDate: string; endDate: string } {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth();
+  const day = now.getUTCDate();
 
   const firstDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
   // End of last day of month (next month day 1 at 00:00:00)
   const endOfMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0));
 
-  // If end of month is in the future, use current time instead
-  // (API doesn't accept future dates)
-  const endDay = endOfMonth > now ? now : endOfMonth;
+  // If end of month is in the future, use tomorrow 00:00 UTC instead
+  // (API requires end date to be at least 1 day after start date)
+  // We use tomorrow 00:00 because the API expects date-based ranges
+  let endDay: Date;
+  if (endOfMonth > now) {
+    // Use tomorrow 00:00 UTC (current day + 1)
+    endDay = new Date(Date.UTC(year, month, day + 1, 0, 0, 0));
+  } else {
+    endDay = endOfMonth;
+  }
 
   return {
     startDate: firstDay.toISOString(),
