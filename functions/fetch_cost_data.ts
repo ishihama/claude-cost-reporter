@@ -36,7 +36,11 @@ function getMonthDateRange(): { startDate: string; endDate: string } {
 
   const firstDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
   // End of last day of month (next month day 1 at 00:00:00)
-  const endDay = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0));
+  const endOfMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0));
+
+  // If end of month is in the future, use current time instead
+  // (API doesn't accept future dates)
+  const endDay = endOfMonth > now ? now : endOfMonth;
 
   return {
     startDate: firstDay.toISOString(),

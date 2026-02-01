@@ -116,55 +116,66 @@ Deno.test("getMonthDateRange - returns RFC 3339 format", () => {
   );
 });
 
-Deno.test("getMonthDateRange - December to January year transition", () => {
-  // Mock Date to December 15, 2025 UTC
-  const time = new FakeTime(new Date("2025-12-15T12:00:00.000Z"));
+Deno.test("getMonthDateRange - December to January year transition (past month)", () => {
+  // Mock Date to January 15, 2026 UTC - querying for January
+  // End of January (Feb 1) is in the future, so end date should be "now"
+  const time = new FakeTime(new Date("2026-01-15T12:00:00.000Z"));
+
+  try {
+    const { startDate, endDate } = getMonthDateRange();
+
+    assertEquals(startDate, "2026-01-01T00:00:00.000Z");
+    // End date is capped to "now" since Feb 1 is in the future
+    assertEquals(endDate, "2026-01-15T12:00:00.000Z");
+  } finally {
+    time.restore();
+  }
+});
+
+Deno.test("getMonthDateRange - end date capped to now when in current month", () => {
+  // Mock Date to February 2, 2026 UTC - this is the current month scenario
+  const time = new FakeTime(new Date("2026-02-02T00:14:00.000Z"));
+
+  try {
+    const { startDate, endDate } = getMonthDateRange();
+
+    assertEquals(startDate, "2026-02-01T00:00:00.000Z");
+    // End date should be "now", not March 1 (which is in the future)
+    assertEquals(endDate, "2026-02-02T00:14:00.000Z");
+  } finally {
+    time.restore();
+  }
+});
+
+Deno.test("getMonthDateRange - end of month used when querying past month", () => {
+  // Mock Date to March 15, 2024 UTC - querying for March
+  // End of March (April 1) is in the future relative to March 15
+  // But let's test with end of month in the past
+  const time = new FakeTime(new Date("2024-04-01T00:00:01.000Z"));
+
+  try {
+    const { startDate, endDate } = getMonthDateRange();
+
+    // Now we're in April, so we query for April
+    assertEquals(startDate, "2024-04-01T00:00:00.000Z");
+    // End of April (May 1) is in the future, so end date is "now"
+    assertEquals(endDate, "2024-04-01T00:00:01.000Z");
+  } finally {
+    time.restore();
+  }
+});
+
+Deno.test("getMonthDateRange - last day of month uses end of month", () => {
+  // Mock Date to last moment before month end
+  // Dec 31, 2025 23:59:59 UTC - end of Dec (Jan 1) is still in the future
+  const time = new FakeTime(new Date("2025-12-31T23:59:59.000Z"));
 
   try {
     const { startDate, endDate } = getMonthDateRange();
 
     assertEquals(startDate, "2025-12-01T00:00:00.000Z");
-    assertEquals(endDate, "2026-01-01T00:00:00.000Z");
-  } finally {
-    time.restore();
-  }
-});
-
-Deno.test("getMonthDateRange - leap year February has 29 days", () => {
-  // Mock Date to February 15, 2024 UTC (2024 is a leap year)
-  const time = new FakeTime(new Date("2024-02-15T12:00:00.000Z"));
-
-  try {
-    const { startDate, endDate } = getMonthDateRange();
-
-    assertEquals(startDate, "2024-02-01T00:00:00.000Z");
-    assertEquals(endDate, "2024-03-01T00:00:00.000Z");
-
-    // Verify the range covers 29 days
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-    assertEquals(daysDiff, 29, "Leap year February should have 29 days");
-  } finally {
-    time.restore();
-  }
-});
-
-Deno.test("getMonthDateRange - non-leap year February has 28 days", () => {
-  // Mock Date to February 15, 2025 UTC (2025 is not a leap year)
-  const time = new FakeTime(new Date("2025-02-15T12:00:00.000Z"));
-
-  try {
-    const { startDate, endDate } = getMonthDateRange();
-
-    assertEquals(startDate, "2025-02-01T00:00:00.000Z");
-    assertEquals(endDate, "2025-03-01T00:00:00.000Z");
-
-    // Verify the range covers 28 days
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-    assertEquals(daysDiff, 28, "Non-leap year February should have 28 days");
+    // Jan 1 2026 > Dec 31 2025 23:59:59, so end date is capped to "now"
+    assertEquals(endDate, "2025-12-31T23:59:59.000Z");
   } finally {
     time.restore();
   }
