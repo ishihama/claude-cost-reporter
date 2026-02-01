@@ -12,15 +12,15 @@ const DailyScheduledTrigger: Trigger<typeof CostReportWorkflow.definition> = {
   workflow: `#/workflows/${CostReportWorkflow.definition.callback_id}`,
   inputs: {},
   schedule: {
+    // Start tomorrow at 09:00 JST
     start_time: new Date(
-      new Date().setHours(0, 0, 0, 0) + 24 * 60 * 60 * 1000,
+      new Date().setHours(9, 0, 0, 0) + 24 * 60 * 60 * 1000,
     ).toISOString(),
     timezone: "Asia/Tokyo",
     frequency: {
       type: "daily",
       repeats_every: 1,
     },
-    // 9:00 AM JST
     end_time: undefined,
   },
 };

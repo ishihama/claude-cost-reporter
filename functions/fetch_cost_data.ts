@@ -28,6 +28,10 @@ export const FetchCostDataFunction = DefineFunction({
 /**
  * Get the first and last day of the current month in RFC 3339 format
  * Format: YYYY-MM-DDTHH:MM:SSZ
+ *
+ * Note: Scheduled execution should be at 09:00 JST (00:00 UTC) or later,
+ * which ensures we're always on day 2+ in UTC and can query the current month.
+ * The day 1 fallback handles manual triggers before 09:00 JST.
  */
 function getMonthDateRange(): { startDate: string; endDate: string } {
   const now = new Date();
@@ -35,14 +39,13 @@ function getMonthDateRange(): { startDate: string; endDate: string } {
   const month = now.getUTCMonth();
   const day = now.getUTCDate();
 
-  // If we're on day 1 of the month (in UTC), we can't query current month yet
-  // because we need end date > start date (by at least 1 day)
-  // So query the previous month instead
+  // If we're on day 1 of the month (in UTC), query previous month as fallback
+  // This handles manual triggers before 09:00 JST
   if (day === 1) {
     const prevMonth = month === 0 ? 11 : month - 1;
     const prevYear = month === 0 ? year - 1 : year;
     const firstDay = new Date(Date.UTC(prevYear, prevMonth, 1, 0, 0, 0));
-    const endDay = new Date(Date.UTC(year, month, 1, 0, 0, 0)); // Start of current month = end of previous
+    const endDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
 
     return {
       startDate: firstDay.toISOString(),
@@ -51,7 +54,6 @@ function getMonthDateRange(): { startDate: string; endDate: string } {
   }
 
   // Day 2 or later: query current month
-  // Use today 00:00 UTC as end date (guaranteed to be in the past or exactly now)
   const firstDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
   const today = new Date(Date.UTC(year, month, day, 0, 0, 0));
   const endOfMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0));
