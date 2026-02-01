@@ -116,65 +116,65 @@ Deno.test("getMonthDateRange - returns RFC 3339 format", () => {
   );
 });
 
-Deno.test("getMonthDateRange - mid month uses tomorrow as end date", () => {
-  // Mock Date to January 15, 2026 UTC
-  // End of January (Feb 1) is in the future, so end date should be Jan 16 00:00
-  const time = new FakeTime(new Date("2026-01-15T12:00:00.000Z"));
-
-  try {
-    const { startDate, endDate } = getMonthDateRange();
-
-    assertEquals(startDate, "2026-01-01T00:00:00.000Z");
-    // End date is tomorrow 00:00 UTC since Feb 1 is in the future
-    assertEquals(endDate, "2026-01-16T00:00:00.000Z");
-  } finally {
-    time.restore();
-  }
-});
-
-Deno.test("getMonthDateRange - first day of month uses tomorrow as end date", () => {
+Deno.test("getMonthDateRange - day 1 queries previous month", () => {
   // Mock Date to February 1, 2026 15:19 UTC (= Feb 2 00:19 JST)
-  // This is the exact scenario causing the bug
+  // Day 1 in UTC, so query January instead
   const time = new FakeTime(new Date("2026-02-01T15:19:00.000Z"));
 
   try {
     const { startDate, endDate } = getMonthDateRange();
 
+    // Should query January (previous month)
+    assertEquals(startDate, "2026-01-01T00:00:00.000Z");
+    assertEquals(endDate, "2026-02-01T00:00:00.000Z");
+  } finally {
+    time.restore();
+  }
+});
+
+Deno.test("getMonthDateRange - day 2 queries current month", () => {
+  // Mock Date to February 2, 2026 00:00:01 UTC
+  // Day 2 in UTC, so query February
+  const time = new FakeTime(new Date("2026-02-02T00:00:01.000Z"));
+
+  try {
+    const { startDate, endDate } = getMonthDateRange();
+
+    // Should query February (current month)
     assertEquals(startDate, "2026-02-01T00:00:00.000Z");
-    // End date should be Feb 2 00:00 UTC (tomorrow), not same day
+    // End date is today 00:00 UTC (Feb 2)
     assertEquals(endDate, "2026-02-02T00:00:00.000Z");
   } finally {
     time.restore();
   }
 });
 
-Deno.test("getMonthDateRange - end of month used when past month boundary", () => {
-  // Mock Date to May 1, 2024 00:00:01 UTC - just after April ended
-  // Now we're in May, querying for May
-  const time = new FakeTime(new Date("2024-05-01T00:00:01.000Z"));
+Deno.test("getMonthDateRange - mid month queries current month", () => {
+  // Mock Date to January 15, 2026 12:00 UTC
+  const time = new FakeTime(new Date("2026-01-15T12:00:00.000Z"));
 
   try {
     const { startDate, endDate } = getMonthDateRange();
 
-    // Now we're in May, so we query for May
-    assertEquals(startDate, "2024-05-01T00:00:00.000Z");
-    // End of May (June 1) is in the future, so end date is tomorrow (May 2)
-    assertEquals(endDate, "2024-05-02T00:00:00.000Z");
+    // Day 15, so query current month (January)
+    assertEquals(startDate, "2026-01-01T00:00:00.000Z");
+    // End date is today 00:00 UTC (Jan 15)
+    assertEquals(endDate, "2026-01-15T00:00:00.000Z");
   } finally {
     time.restore();
   }
 });
 
-Deno.test("getMonthDateRange - last day of month uses next day", () => {
-  // Mock Date to last day of December
-  // Dec 31, 2025 23:59:59 UTC - end of Dec (Jan 1) is still in the future
-  const time = new FakeTime(new Date("2025-12-31T23:59:59.000Z"));
+Deno.test("getMonthDateRange - year boundary January 1 queries December", () => {
+  // Mock Date to January 1, 2026 12:00 UTC
+  // Day 1, so query previous month (December 2025)
+  const time = new FakeTime(new Date("2026-01-01T12:00:00.000Z"));
 
   try {
     const { startDate, endDate } = getMonthDateRange();
 
+    // Should query December 2025 (previous month)
     assertEquals(startDate, "2025-12-01T00:00:00.000Z");
-    // Tomorrow is Jan 1, which is also end of month - same value
     assertEquals(endDate, "2026-01-01T00:00:00.000Z");
   } finally {
     time.restore();
