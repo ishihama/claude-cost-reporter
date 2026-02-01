@@ -31,8 +31,8 @@ export const FetchCostDataFunction = DefineFunction({
  */
 function getMonthDateRange(): { startDate: string; endDate: string } {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
 
   const firstDay = new Date(Date.UTC(year, month, 1, 0, 0, 0));
   // End of last day of month (next month day 1 at 00:00:00)
