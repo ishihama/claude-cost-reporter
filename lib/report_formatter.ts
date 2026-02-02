@@ -195,7 +195,7 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
       elements: [
         {
           type: "mrkdwn",
-          text: `${budgetProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(report.organization.budget_usd)}`,
+          text: `${budgetProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(report.organization.budget_usd)} (毎月予算)`,
         },
       ],
     });
@@ -235,7 +235,7 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
         const forecastPercent = (ws.forecast_usd / ws.budget_usd) * 100;
         const wsProgressBar = createProgressBar(actualPercent, forecastPercent);
         costText = `${formatUSD(ws.amount_usd)} (実績) → ${formatUSD(ws.forecast_usd)} (月末予測)`;
-        progressText = `${wsProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(ws.budget_usd)}`;
+        progressText = `${wsProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(ws.budget_usd)} (毎月予算)`;
       } else {
         // Show share of total org spend when no budget
         icon = "📁";
