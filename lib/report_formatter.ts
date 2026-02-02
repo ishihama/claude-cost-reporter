@@ -121,12 +121,25 @@ export function formatErrorMessage(error: string): string {
 
 /**
  * Create a progress bar using Unicode characters
+ * Shows both actual and forecast percentages:
+ * - █ (solid) = actual spent
+ * - ▒ (medium) = forecast remainder (forecast - actual)
+ * - ░ (light) = remaining budget
  */
-export function createProgressBar(percent: number, width: number = 20): string {
-  const clampedPercent = Math.min(100, Math.max(0, percent));
-  const filled = Math.round((clampedPercent / 100) * width);
-  const empty = width - filled;
-  return "█".repeat(filled) + "░".repeat(empty);
+export function createProgressBar(
+  actualPercent: number,
+  forecastPercent: number,
+  width: number = 20
+): string {
+  const clampedActual = Math.min(100, Math.max(0, actualPercent));
+  const clampedForecast = Math.min(100, Math.max(0, forecastPercent));
+
+  const actualBlocks = Math.round((clampedActual / 100) * width);
+  const forecastBlocks = Math.round((clampedForecast / 100) * width);
+  const forecastOnlyBlocks = Math.max(0, forecastBlocks - actualBlocks);
+  const emptyBlocks = width - actualBlocks - forecastOnlyBlocks;
+
+  return "█".repeat(actualBlocks) + "▒".repeat(forecastOnlyBlocks) + "░".repeat(emptyBlocks);
 }
 
 /**
@@ -174,14 +187,15 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
 
   // Organization progress bar
   if (report.organization.budget_usd) {
-    const budgetPercent = (report.organization.total_forecast_usd / report.organization.budget_usd) * 100;
-    const budgetProgressBar = createProgressBar(budgetPercent);
+    const actualPercent = (report.organization.total_amount_usd / report.organization.budget_usd) * 100;
+    const forecastPercent = (report.organization.total_forecast_usd / report.organization.budget_usd) * 100;
+    const budgetProgressBar = createProgressBar(actualPercent, forecastPercent);
     blocks.push({
       type: "context",
       elements: [
         {
           type: "mrkdwn",
-          text: `${budgetProgressBar} *${formatPercentage(budgetPercent)}* of ${formatUSD(report.organization.budget_usd)}`,
+          text: `${budgetProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(report.organization.budget_usd)}`,
         },
       ],
     });
@@ -217,19 +231,23 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
       if (ws.budget_usd) {
         // Show budget usage when budget is set
         icon = getAlertIcon(ws.alert_level);
-        const budgetPercent = (ws.forecast_usd / ws.budget_usd) * 100;
-        const wsProgressBar = createProgressBar(budgetPercent);
+        const actualPercent = (ws.amount_usd / ws.budget_usd) * 100;
+        const forecastPercent = (ws.forecast_usd / ws.budget_usd) * 100;
+        const wsProgressBar = createProgressBar(actualPercent, forecastPercent);
         costText = `${formatUSD(ws.amount_usd)} → ${formatUSD(ws.forecast_usd)} (予測)`;
-        progressText = `${wsProgressBar} *${formatPercentage(budgetPercent)}* of ${formatUSD(ws.budget_usd)}`;
+        progressText = `${wsProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(ws.budget_usd)}`;
       } else {
         // Show share of total org spend when no budget
         icon = "📁";
-        const sharePercent = report.organization.total_amount_usd > 0
+        const actualSharePercent = report.organization.total_amount_usd > 0
           ? (ws.amount_usd / report.organization.total_amount_usd) * 100
           : 0;
-        const wsProgressBar = createProgressBar(sharePercent);
+        const forecastSharePercent = report.organization.total_forecast_usd > 0
+          ? (ws.forecast_usd / report.organization.total_forecast_usd) * 100
+          : 0;
+        const wsProgressBar = createProgressBar(actualSharePercent, forecastSharePercent);
         costText = `${formatUSD(ws.amount_usd)} → ${formatUSD(ws.forecast_usd)} (予測)`;
-        progressText = `${wsProgressBar} *${formatPercentage(sharePercent)}* of total`;
+        progressText = `${wsProgressBar} *${formatPercentage(actualSharePercent)}*|*${formatPercentage(forecastSharePercent)}* of total`;
       }
 
       blocks.push({

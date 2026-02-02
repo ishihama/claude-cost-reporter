@@ -117,16 +117,28 @@ Deno.test("formatErrorMessage - formats error correctly", () => {
 
 // Block Kit format tests
 
-Deno.test("createProgressBar - creates correct progress bar", () => {
-  assertEquals(createProgressBar(0, 10), "░░░░░░░░░░");
-  assertEquals(createProgressBar(50, 10), "█████░░░░░");
-  assertEquals(createProgressBar(100, 10), "██████████");
-  assertEquals(createProgressBar(25, 20), "█████░░░░░░░░░░░░░░░");
+Deno.test("createProgressBar - creates correct progress bar with actual and forecast", () => {
+  // actual=0%, forecast=0%
+  assertEquals(createProgressBar(0, 0, 10), "░░░░░░░░░░");
+  // actual=50%, forecast=50% (no forecast-only portion)
+  assertEquals(createProgressBar(50, 50, 10), "█████░░░░░");
+  // actual=100%, forecast=100%
+  assertEquals(createProgressBar(100, 100, 10), "██████████");
+  // actual=25%, forecast=75% (shows forecast-only as ▒)
+  assertEquals(createProgressBar(25, 75, 20), "█████▒▒▒▒▒▒▒▒▒▒░░░░░");
+  // actual=10%, forecast=50%
+  assertEquals(createProgressBar(10, 50, 10), "█▒▒▒▒░░░░░");
 });
 
 Deno.test("createProgressBar - clamps values to 0-100", () => {
-  assertEquals(createProgressBar(-10, 10), "░░░░░░░░░░");
-  assertEquals(createProgressBar(150, 10), "██████████");
+  assertEquals(createProgressBar(-10, 50, 10), "▒▒▒▒▒░░░░░");
+  assertEquals(createProgressBar(50, 150, 10), "█████▒▒▒▒▒");
+  assertEquals(createProgressBar(150, 150, 10), "██████████");
+});
+
+Deno.test("createProgressBar - handles forecast less than actual", () => {
+  // If forecast is less than actual (edge case), no ▒ blocks shown
+  assertEquals(createProgressBar(50, 30, 10), "█████░░░░░");
 });
 
 Deno.test("formatSlackBlocks - returns blocks with header", () => {
