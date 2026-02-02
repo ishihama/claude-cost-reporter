@@ -175,7 +175,7 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
   const orgIcon = report.organization.budget_usd
     ? getAlertIcon(report.organization.alert_level)
     : "🏢";
-  const orgCostText = `${formatUSD(report.organization.total_amount_usd)} → ${formatUSD(report.organization.total_forecast_usd)} (予測)`;
+  const orgCostText = `${formatUSD(report.organization.total_amount_usd)} (実績) → ${formatUSD(report.organization.total_forecast_usd)} (月末予測)`;
 
   blocks.push({
     type: "section",
@@ -234,7 +234,7 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
         const actualPercent = (ws.amount_usd / ws.budget_usd) * 100;
         const forecastPercent = (ws.forecast_usd / ws.budget_usd) * 100;
         const wsProgressBar = createProgressBar(actualPercent, forecastPercent);
-        costText = `${formatUSD(ws.amount_usd)} → ${formatUSD(ws.forecast_usd)} (予測)`;
+        costText = `${formatUSD(ws.amount_usd)} (実績) → ${formatUSD(ws.forecast_usd)} (月末予測)`;
         progressText = `${wsProgressBar} *${formatPercentage(actualPercent)}*|*${formatPercentage(forecastPercent)}* of ${formatUSD(ws.budget_usd)}`;
       } else {
         // Show share of total org spend when no budget
@@ -246,7 +246,7 @@ export function formatSlackBlocks(report: CostReport): SlackBlocksResult {
           ? (ws.forecast_usd / report.organization.total_forecast_usd) * 100
           : 0;
         const wsProgressBar = createProgressBar(actualSharePercent, forecastSharePercent);
-        costText = `${formatUSD(ws.amount_usd)} → ${formatUSD(ws.forecast_usd)} (予測)`;
+        costText = `${formatUSD(ws.amount_usd)} (実績) → ${formatUSD(ws.forecast_usd)} (月末予測)`;
         progressText = `${wsProgressBar} *${formatPercentage(actualSharePercent)}*|*${formatPercentage(forecastSharePercent)}* of total`;
       }
 
