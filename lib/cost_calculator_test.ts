@@ -77,16 +77,16 @@ Deno.test("aggregateCostsByWorkspace - aggregates correctly", () => {
         starting_at: "2025-01-01",
         ending_at: "2025-01-02",
         results: [
-          { amount: "10000", currency: "USD", workspace_id: "ws1" },
-          { amount: "5000", currency: "USD", workspace_id: "ws2" },
+          { amount: "10000", currency: "USD", workspace_id: "ws1", description: null, cost_type: null, context_window: null, model: null, service_tier: null, token_type: null },
+          { amount: "5000", currency: "USD", workspace_id: "ws2", description: null, cost_type: null, context_window: null, model: null, service_tier: null, token_type: null },
         ],
       },
       {
         starting_at: "2025-01-02",
         ending_at: "2025-01-03",
         results: [
-          { amount: "15000", currency: "USD", workspace_id: "ws1" },
-          { amount: "3000", currency: "USD", workspace_id: null },
+          { amount: "15000", currency: "USD", workspace_id: "ws1", description: null, cost_type: null, context_window: null, model: null, service_tier: null, token_type: null },
+          { amount: "3000", currency: "USD", workspace_id: null, description: null, cost_type: null, context_window: null, model: null, service_tier: null, token_type: null },
         ],
       },
     ],
@@ -107,8 +107,8 @@ Deno.test("buildCostReport - builds complete report", () => {
         starting_at: "2025-01-01",
         ending_at: "2025-01-15",
         results: [
-          { amount: "30000", currency: "USD", workspace_id: "ws1" },
-          { amount: "20000", currency: "USD", workspace_id: "ws2" },
+          { amount: "30000", currency: "USD", workspace_id: "ws1", description: null, cost_type: null, context_window: null, model: null, service_tier: null, token_type: null },
+          { amount: "20000", currency: "USD", workspace_id: "ws2", description: null, cost_type: null, context_window: null, model: null, service_tier: null, token_type: null },
         ],
       },
     ],
