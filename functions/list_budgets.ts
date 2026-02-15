@@ -110,7 +110,7 @@ export default SlackFunction(
           },
           accessory: {
             type: "overflow",
-            action_id: `budget_actions_${budget.workspace_id}`,
+            action_id: "budget_actions",
             options: [
               {
                 text: {
@@ -176,7 +176,7 @@ export default SlackFunction(
 )
   // Handle button clicks
   .addBlockActionsHandler(
-    ["add_budget", "refresh_budgets", "edit_org_budget", /^budget_actions_.*/],
+    ["add_budget", "refresh_budgets", "edit_org_budget", "budget_actions"],
     async ({ action, body, client, env }) => {
       console.log("[ListBudgets] Block action received:", action.action_id);
       const userId = body.user.id;
@@ -366,7 +366,7 @@ export default SlackFunction(
         // Refresh the list
         await refreshBudgetList(client, channelId, messageTs);
         console.log("[ListBudgets] Refresh complete");
-      } else if (action.action_id?.startsWith("budget_actions_")) {
+      } else if (action.action_id === "budget_actions") {
         // Handle overflow menu selection
         const selectedValue = action.selected_option?.value;
         if (selectedValue?.startsWith("edit_")) {
@@ -664,7 +664,7 @@ async function refreshBudgetList(client: any, channelId: string, messageTs: stri
         },
         accessory: {
           type: "overflow",
-          action_id: `budget_actions_${budget.workspace_id}`,
+          action_id: "budget_actions",
           options: [
             {
               text: {
